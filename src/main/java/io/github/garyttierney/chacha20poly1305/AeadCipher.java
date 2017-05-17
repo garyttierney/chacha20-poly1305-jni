@@ -77,35 +77,20 @@ public final class AeadCipher {
 
 		if (!ciphertext.isDirect() && !additionalData.isDirect() && !nonce.isDirect()) {
 			throw new AeadCipherException(
-					"This cipher can only be used with direct mapped buffers.  See ByteBuffer.allocateDirect(int)");
+				"This cipher can only be used with direct mapped buffers.  See ByteBuffer.allocateDirect(int)");
 		}
 
 		int outputLength = ciphertextLength - mode.getHmacSize();
 		ByteBuffer output = ByteBuffer.allocateDirect(outputLength);
 
-		int rc;
-
-		switch (mode) {
-			case CHACHA20_POLY1305:
-				rc = ChaCha20Poly1305.decrypt(key.getKey(), ciphertext, ciphertextLength,
-											  additionalData, additionalDataLength, nonce, output);
-				break;
-			case CHACHA20_POLY1305_IETF:
-				rc = ChaCha20Poly1305Ietf.decrypt(key.getKey(), ciphertext, ciphertextLength,
-												  additionalData, additionalDataLength, nonce, output);
-				break;
-			case XCHACHA20_POLY1305:
-				rc = XChaCha20Poly1305.decrypt(key.getKey(), ciphertext, ciphertextLength,
-											   additionalData, additionalDataLength, nonce, output);
-				break;
-			default:
-				throw new IllegalStateException("Invalid cipher mode");
-		}
+		AeadCryptoFunction decryptFunction = mode.getDecryptFunction();
+		int rc = decryptFunction.apply(key.getKey(), ciphertext, ciphertextLength,
+									   additionalData, additionalDataLength, nonce, output);
 
 		if (rc == 0) {
 			throw new AeadVerificationException();
-		} else if (rc == -1) {
-			throw new AeadCipherException("Fatal error occurred during encryption");
+		} else if (rc < 0) {
+			throw new AeadCipherException("Fatal error occurred during decryption");
 		}
 
 		return output;
@@ -129,30 +114,15 @@ public final class AeadCipher {
 
 		if (!plaintext.isDirect() || !additionalData.isDirect() || !nonce.isDirect()) {
 			throw new AeadCipherException(
-					"This cipher can only be used with direct mapped buffers.  See ByteBuffer.allocateDirect(int)");
+				"This cipher can only be used with direct mapped buffers.  See ByteBuffer.allocateDirect(int)");
 		}
 
 		int outputLength = plaintextLength + mode.getHmacSize();
 		ByteBuffer output = ByteBuffer.allocateDirect(outputLength);
 
-		int rc;
-
-		switch (mode) {
-			case CHACHA20_POLY1305:
-				rc = ChaCha20Poly1305.encrypt(key.getKey(), plaintext, plaintextLength,
-											  additionalData, additionalDataLength, nonce, output);
-				break;
-			case CHACHA20_POLY1305_IETF:
-				rc = ChaCha20Poly1305Ietf.encrypt(key.getKey(), plaintext, plaintextLength,
-												  additionalData, additionalDataLength, nonce, output);
-				break;
-			case XCHACHA20_POLY1305:
-				rc = XChaCha20Poly1305.encrypt(key.getKey(), plaintext, plaintextLength,
-											   additionalData, additionalDataLength, nonce, output);
-				break;
-			default:
-				throw new IllegalStateException("Invalid cipher mode");
-		}
+		AeadCryptoFunction encryptFunction = mode.getEncryptFunction();
+		int rc = encryptFunction.apply(key.getKey(), plaintext, plaintextLength,
+									   additionalData, additionalDataLength, nonce, output);
 
 		if (rc != 1) {
 			throw new AeadCipherException("Fatal error occurred during encryption");
