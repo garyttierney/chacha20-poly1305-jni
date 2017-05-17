@@ -75,7 +75,7 @@ public final class AeadCipher {
 							  ByteBuffer additionalData, int additionalDataLength,
 							  ByteBuffer nonce) throws AeadCipherException, AeadVerificationException {
 
-		if (!(ciphertext.isDirect() || additionalData.isDirect() || nonce.isDirect())) {
+		if (!ciphertext.isDirect() && !additionalData.isDirect() && !nonce.isDirect()) {
 			throw new AeadCipherException(
 					"This cipher can only be used with direct mapped buffers.  See ByteBuffer.allocateDirect(int)");
 		}
@@ -127,7 +127,7 @@ public final class AeadCipher {
 							  ByteBuffer additionalData, int additionalDataLength,
 							  ByteBuffer nonce) throws AeadCipherException {
 
-		if (!(plaintext.isDirect() || additionalData.isDirect() || nonce.isDirect())) {
+		if (!plaintext.isDirect() || !additionalData.isDirect() || !nonce.isDirect()) {
 			throw new AeadCipherException(
 					"This cipher can only be used with direct mapped buffers.  See ByteBuffer.allocateDirect(int)");
 		}
