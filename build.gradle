@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'c'
 }
+System.setProperty('java.home', '/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.121-8.b14.fc24.x86_64')
 
 group 'io.github.garyttierney'
 version '1.0-SNAPSHOT'
@@ -57,6 +58,7 @@ model {
 
 test {
     systemProperty 'java.library.path', "$buildDir/libs/chacha20poly1305jni/shared/release"
+    dependsOn 'chacha20poly1305jniReleaseSharedLibrary'
 }
 
 dependencies {
