@@ -17,7 +17,15 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class AeadCipherIntegrationTest {
 
-	private final AeadMode cipherMode;
+	/**
+	 * Random number generator to generate key values.
+	 */
+	private static final SecureRandom random = new SecureRandom();
+
+	/**
+	 * The {@link AeadCipher} implementation being tested.
+	 */
+	private final AeadCipher cipher;
 
 	@BeforeClass
 	public static void setUp() throws Exception {
@@ -27,14 +35,17 @@ public class AeadCipherIntegrationTest {
 	@Parameters(name = "aead-integration-test-{index}: {0}")
 	public static Collection<Object[]> data() {
 		return Arrays.asList(
-				new Object[]{AeadMode.CHACHA20_POLY1305},
-				new Object[]{AeadMode.CHACHA20_POLY1305_IETF},
-				new Object[]{AeadMode.XCHACHA20_POLY1305}
+			new Object[]{AeadMode.CHACHA20_POLY1305},
+			new Object[]{AeadMode.CHACHA20_POLY1305_IETF},
+			new Object[]{AeadMode.XCHACHA20_POLY1305}
 		);
 	}
 
-	public AeadCipherIntegrationTest(AeadMode cipherMode) {
-		this.cipherMode = cipherMode;
+	public AeadCipherIntegrationTest(AeadMode cipherMode) throws Exception {
+		byte[] key = new byte[cipherMode.getKeySize()];
+		random.nextBytes(key);
+
+		this.cipher = new AeadCipher(new SecretKey(key), cipherMode);
 	}
 
 	/**
@@ -42,13 +53,6 @@ public class AeadCipherIntegrationTest {
 	 */
 	@Test
 	public void integration() throws Exception {
-		SecureRandom rng = new SecureRandom();
-
-		byte[] key = new byte[cipherMode.getKeySize()];
-		rng.nextBytes(key);
-
-		AeadCipher cipher = new AeadCipher(new SecretKey(key), cipherMode);
-
 		byte[] plaintextBytes = "ABCD".getBytes();
 		byte[] additionalBytes = "EFGH".getBytes();
 
@@ -66,6 +70,27 @@ public class AeadCipherIntegrationTest {
 		plaintext.get(plaintextData);
 
 		assertThat(plaintextData, equalTo(plaintextBytes));
+	}
+
+	@Test(expected = AeadVerificationException.class)
+	public void authenticationFailure() throws Exception {
+		byte[] plaintextBytes = "ABCD".getBytes();
+		byte[] additionalBytes = "EFGH".getBytes();
+
+		ByteBuffer msg = wrapDirect(plaintextBytes);
+		ByteBuffer additional = wrapDirect(additionalBytes);
+		ByteBuffer nonce = cipher.randomNonce();
+
+		ByteBuffer ciphertext = cipher.encrypt(msg, plaintextBytes.length, additional,
+											   additionalBytes.length, nonce);
+
+		// invalidate the HMAC by flipping the last byte in the authentication
+		// block
+		int ciphertextEndPos = ciphertext.capacity() - 1;
+		ciphertext.put(ciphertextEndPos, (byte) ~ciphertext.get(ciphertextEndPos));
+
+		cipher.decrypt(ciphertext, ciphertext.capacity(),
+					   additional, additionalBytes.length, nonce);
 	}
 
 	private static ByteBuffer wrapDirect(byte[] data) {
