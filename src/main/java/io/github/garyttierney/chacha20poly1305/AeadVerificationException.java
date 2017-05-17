@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
  *
  * @see AeadCipher#decrypt(ByteBuffer, int, ByteBuffer, int, ByteBuffer)
  */
-public class AeadVerificationException extends Exception {
+public final class AeadVerificationException extends Exception {
 
 	public AeadVerificationException() {
 		super();
