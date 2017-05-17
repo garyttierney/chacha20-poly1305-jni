@@ -1,6 +1,7 @@
 #include "chacha20_poly1305_aead.h"
 
 #include <jni.h>
+#include <sodium.h>
 
 JNIEXPORT jint JNICALL chacha20_poly1305_decrypt_method(
     JNIEnv *env, jclass cls, jobject key, jobject plaintext, jint plaintext_len,
@@ -89,8 +90,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved)
 		return rc;
 	}
 
-	JNIEnv *env = uenv.env;
+	if (sodium_init() == -1) {
+		return rc;
+	}
 
+	JNIEnv *env = uenv.env;
 	int num_method_specs = sizeof(JNI_METHODS) / sizeof(JNI_METHODS[0]);
 
 	for (int i = 0; i < num_method_specs; i++) {
