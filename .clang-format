@@ -1,0 +1,11 @@
+---
+BreakBeforeBraces: Linux
+ColumnLimit: 80
+ReflowComments: true
+UseTab: Always
+TabWidth: 8
+IndentWidth: 8
+AllowShortIfStatementsOnASingleLine: false
+Cpp11BracedListStyle: false
+IndentCaseLabels: false
+SortIncludes: false

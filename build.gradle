@@ -1,0 +1,64 @@
+plugins {
+    id 'java'
+    id 'c'
+}
+
+group 'io.github.garyttierney'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+model {
+    components {
+        chacha20poly1305jni(NativeLibrarySpec) {
+            sources {
+                c {
+                    source {
+                        srcDir 'src/main/jni'
+                        include "**/*.c"
+                    }
+                }
+            }
+
+            buildTypes {
+                debug
+                release
+            }
+        }
+    }
+
+    toolChains {
+        gcc(Gcc) {
+            eachPlatform {
+                def javaHome = System.getProperty('java.home')
+                def os = System.getProperty('os.name')
+                def jniOs
+
+                switch (os) {
+                    case ~/Linux/: jniOs = 'linux'; break;
+                    case ~/Mac OS/: jniOs = 'darin'; break;
+                    case ~/Win/: jniOs = 'win32'; break;
+                }
+
+                cCompiler.withArguments { args ->
+                    args << "-I$javaHome/include"
+                    args << "-I$javaHome/include/$jniOs"
+                }
+
+                linker.withArguments { args ->
+                    args << "-lsodium"
+                }
+            }
+        }
+    }
+}
+
+test {
+    systemProperty 'java.library.path', "$buildDir/libs/chacha20poly1305jni/shared/release"
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
