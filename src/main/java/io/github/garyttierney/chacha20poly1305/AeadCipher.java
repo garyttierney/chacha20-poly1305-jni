@@ -6,7 +6,8 @@ import java.security.SecureRandom;
 
 /**
  * An AEAD cipher implementation which implements encryption/decryption of authenticated messaages
- * with additional data using variants of ChaCha20-Poly1305.
+ * with additional data using variants of ChaCha20-Poly1305.  Calls to {@code AeadCipher} crypto functions
+ * are thread-safe.
  */
 public final class AeadCipher {
 
