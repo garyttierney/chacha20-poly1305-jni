@@ -8,27 +8,30 @@ primitives.
 
 ```java
 class ChaCha20Poly1305JniExample {
-    public static void main(String[] argv) {
-    	SecureRandom random = new SecureRandom();
-    	
-    	AeadMode mode = AeadMode.CHACHA20_POLY1305;
-    	byte[] key = new byte[mode.getKeySize()];
-    	
-    	byte[] plaintextData = "ABC".getBytes();
-    	byte[] additionalData = "DEF".getBytes();
-    	
-    	AeadCipher cipher = new AeadCipher(new SecretKey(key), mode);
-    	ByteBuffer ciphertext = cipher.encrypt(msg, plaintextBytes.length, additional,
-                                             additionalBytes.length, nonce);
-    }
-    
-    private static ByteBuffer wrapDirect(byte[] data) {
-    	  ByteBuffer buffer = ByteBuffer.allocateDirect(data.length);
-    	  buffer.put(data);
-    	  buffer.position(0);
-    	  
-    	  return buffer;
-    }
+	public static void main(String[] argv) {
+		SecureRandom random = new SecureRandom();
+
+		AeadMode mode = AeadMode.CHACHA20_POLY1305;
+		byte[] key = new byte[mode.getKeySize()];
+		random.nextBytes(key);
+
+		byte[] plaintextData = "ABC".getBytes();
+		byte[] additionalData = "DEF".getBytes();
+
+		AeadCipher cipher = new AeadCipher(new SecretKey(key), mode);
+		ByteBuffer nonce = cipher.randomNonce();
+
+		ByteBuffer ciphertext = cipher.encrypt(msg, plaintextBytes.length, additional,
+						      additionalBytes.length, nonce);
+	}
+
+	private static ByteBuffer wrapDirect(byte[] data) {
+		ByteBuffer buffer = ByteBuffer.allocateDirect(data.length);
+		buffer.put(data);
+		buffer.position(0);
+
+		return buffer;
+	}
 }
 ```
 
