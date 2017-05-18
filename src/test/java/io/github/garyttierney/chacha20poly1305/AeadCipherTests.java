@@ -33,7 +33,7 @@ public class AeadCipherTests {
 
 		ByteBuffer buffer = ByteBuffer.wrap("ABC".getBytes());
 		ByteBuffer additional = ByteBuffer.wrap("DEF".getBytes());
-		ByteBuffer nonce = ByteBuffer.allocate(mode.getNonceSize());
+		ByteBuffer nonce = ByteBuffer.allocateDirect(mode.getNonceSize());
 
 		byte[] keyData = new byte[mode.getKeySize()];
 		AeadCipher cipher = new AeadCipher(new SecretKey(keyData), mode);
@@ -54,7 +54,7 @@ public class AeadCipherTests {
 
 		ByteBuffer buffer = ByteBuffer.wrap("ABC".getBytes());
 		ByteBuffer additional = ByteBuffer.wrap("DEF".getBytes());
-		ByteBuffer nonce = ByteBuffer.allocate(mode.getNonceSize());
+		ByteBuffer nonce = ByteBuffer.allocateDirect(mode.getNonceSize());
 
 		byte[] keyData = new byte[mode.getKeySize()];
 		AeadCipher cipher = new AeadCipher(new SecretKey(keyData), mode);
